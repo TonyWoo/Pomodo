@@ -20,11 +20,17 @@ namespace PomodoroTimer
             
             try
             {
-                this.Icon = new Icon("favicon.ico");
+                var asm = System.Reflection.Assembly.GetExecutingAssembly();
+                using (var stream = asm.GetManifestResourceStream("PomodoroTimer.favicon.ico"))
+                {
+                    if (stream == null)
+                        throw new Exception("Embedded resource 'PomodoroTimer.favicon.ico' not found.");
+                    this.Icon = new Icon(stream);
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to load icon: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"Failed to load embedded icon: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             
             InitializeFormStyle();

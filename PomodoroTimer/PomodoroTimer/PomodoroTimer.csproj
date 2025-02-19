@@ -11,9 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="..\favicon.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <EmbeddedResource Include="..\favicon.ico">
+      <LogicalName>PomodoroTimer.favicon.ico</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

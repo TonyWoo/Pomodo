@@ -5,6 +5,9 @@ using Newtonsoft.Json;
 using System.IO;
 using PomodoroTimer.Models;
 using System.Windows.Forms;  // 添加这个引用
+using System.Linq;
+using System.Threading.Tasks;
+using System.Drawing;
 
 namespace PomodoroTimer.Services
 {
@@ -91,7 +94,10 @@ namespace PomodoroTimer.Services
             {
                 completedPomodoros++;
                 SavePomodoroData();
-                
+
+                // Bring window to front and shake it when a pomodoro is completed
+                ShowAndShakeWindow();
+
                 currentState = (completedPomodoros % PomodorosUntilLongBreak == 0) 
                     ? PomodoroState.LongBreak 
                     : PomodoroState.ShortBreak;
@@ -106,6 +112,33 @@ namespace PomodoroTimer.Services
             }
             startTime = DateTime.Now;
             timer.Start();
+        }
+
+        // New method to bring the main window to front and shake it
+        private async void ShowAndShakeWindow()
+        {
+            var form = Application.OpenForms.Cast<Form>().FirstOrDefault();
+            if (form != null)
+            {
+                form.Invoke(new Action(() => {
+                    form.TopMost = true;
+                    form.BringToFront();
+                    form.Activate();
+                }));
+                var originalLocation = form.Location;
+                int shakeAmplitude = 10;
+                for (int i = 0; i < 10; i++)
+                {
+                    form.Invoke(new Action(() => {
+                        form.Location = new Point(originalLocation.X + ((i % 2 == 0) ? shakeAmplitude : -shakeAmplitude), originalLocation.Y);
+                    }));
+                    await Task.Delay(50);
+                }
+                form.Invoke(new Action(() => {
+                    form.Location = originalLocation;
+                    form.TopMost = false;
+                }));
+            }
         }
 
         public void Start()
