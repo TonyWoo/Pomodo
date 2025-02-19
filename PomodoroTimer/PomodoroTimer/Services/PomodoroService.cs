@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using System.IO;
 using PomodoroTimer.Models;
+using System.Windows.Forms;  // 添加这个引用
 
 namespace PomodoroTimer.Services
 {
@@ -116,6 +117,10 @@ namespace PomodoroTimer.Services
         public void Stop()
         {
             timer.Stop();
+            // 重置计时器显示
+            currentState = PomodoroState.Work;
+            TimerTick?.Invoke(this, TimeSpan.FromMinutes(WorkMinutes));
+            completedPomodoros = 0;
         }
 
         public void SetAutoStart(bool enable)
