@@ -18,7 +18,7 @@ namespace PomodoroTimer
         {
             InitializeComponent();
             pomodoroService = new PomodoroService();          
- 
+
             InitializeFormStyle();
             InitializeNotifyIcon();
             InitializeTopMostCheckBox();  // 初始化置顶控件
@@ -39,6 +39,10 @@ namespace PomodoroTimer
             // 美化状态标签
             stateLabel.Font = new Font("Segoe UI", 12);
             stateLabel.ForeColor = Color.FromArgb(100, 100, 100);
+            
+            // 设置初始状态和时间
+            stateLabel.Text = "Work Time";
+            timerLabel.Text = $"{PomodoroService.DefaultWorkMinutes:D2}:00";
             
             // 美化按钮
             StyleButton(startButton);
@@ -129,31 +133,64 @@ namespace PomodoroTimer
             pomodoroService.WorkStarted += (s, e) =>
             {
                 stateLabel.Text = "Work Time";
+                timerLabel.Text = $"{PomodoroService.DefaultWorkMinutes:D2}:00";
+                startButton.Enabled = false;
+                stopButton.Enabled = true;
                 notifyIcon.ShowBalloonTip(3000, "Pomodoro Timer", "Work time started!", ToolTipIcon.Info);
-                // Ensure mouse restriction is removed during work time
+                this.TopMost = false;
                 UnlockCursor();
             };
 
             pomodoroService.BreakStarted += (s, e) =>
             {
+                var breakDuration = pomodoroService.GetCurrentBreakDuration();
                 stateLabel.Text = "Break Time";
+                timerLabel.Text = $"{breakDuration.Minutes:D2}:{breakDuration.Seconds:D2}";
+                startButton.Enabled = false;
+                stopButton.Enabled = true;
                 notifyIcon.ShowBalloonTip(3000, "Pomodoro Timer", "Break time! Screen will be locked.", ToolTipIcon.Info);
+                
                 this.Invoke(async () =>
                 {
-                    this.TopMost = true; // Set window as topmost
-                    this.WindowState = FormWindowState.Normal; // Ensure the window is in normal state
                     this.Show();
+                    this.WindowState = FormWindowState.Normal;
+                    this.TopMost = true;
                     this.BringToFront();
                     this.Activate();
+                    this.Focus();
+                    
+                    await Task.Delay(100);
+                    this.TopMost = true;
+                    this.BringToFront();
+                    
                     await ShakeWindow();
-                    this.TopMost = false; // Reset topmost property
+                    
+                    this.TopMost = true;
+                    this.BringToFront();
+                    this.Activate();
+                    
+                    LockCursor();
                 });
-                LockCursor();
+            };
+
+            pomodoroService.PomodoroCompleted += (s, e) =>
+            {
+                startButton.Enabled = true;
+                stopButton.Enabled = false;
+                UpdateTodayStats();
+            };
+
+            pomodoroService.BreakCompleted += (s, e) =>
+            {
+                startButton.Enabled = true;
+                stopButton.Enabled = false;
+                UnlockCursor();
             };
 
             Load += (s, e) =>
             {
                 chkAutoStart.Checked = pomodoroService.GetAutoStartEnabled();
+                UpdateTodayStats();
             };
 
             FormClosing += (s, e) =>
@@ -164,6 +201,18 @@ namespace PomodoroTimer
                     Hide();
                 }
             };
+        }
+
+        private void UpdateTodayStats()
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(UpdateTodayStats));
+                return;
+            }
+
+            var todayPomodoros = pomodoroService.GetTodayCompletedPomodoros();
+            statsLabel.Text = $"Today: {todayPomodoros} pomodoros";
         }
 
         private void startButton_Click(object sender, EventArgs e)
@@ -190,7 +239,24 @@ namespace PomodoroTimer
         // Restrict the mouse cursor to the bounds of the form's client area
         private void LockCursor()
         {
-            System.Windows.Forms.Cursor.Clip = this.RectangleToScreen(this.ClientRectangle);
+            // 获取窗口客户区在屏幕中的实际位置
+            Point clientOrigin = this.PointToScreen(Point.Empty);
+            Rectangle screenRect = new Rectangle(
+                clientOrigin.X,
+                clientOrigin.Y,
+                this.ClientRectangle.Width,
+                this.ClientRectangle.Height
+            );
+            
+            // 设置光标限制区域为客户区
+            System.Windows.Forms.Cursor.Clip = screenRect;
+            
+            // 将鼠标居中到窗口客户区中心
+            Point centerPoint = new Point(
+                screenRect.X + screenRect.Width / 2,
+                screenRect.Y + screenRect.Height / 2
+            );
+            System.Windows.Forms.Cursor.Position = centerPoint;
         }
 
         // Release the mouse cursor restriction
@@ -207,11 +273,18 @@ namespace PomodoroTimer
             {
                 this.Invoke(new Action(() => {
                     this.Location = new Point(originalLocation.X + ((i % 2 == 0) ? shakeAmplitude : -shakeAmplitude), originalLocation.Y);
+                    // 在抖动过程中保持窗口置顶
+                    this.TopMost = true;
+                    this.BringToFront();
                 }));
                 await Task.Delay(50);
             }
             this.Invoke(new Action(() => {
                 this.Location = originalLocation;
+                // 确保抖动结束后窗口仍然置顶
+                this.TopMost = true;
+                this.BringToFront();
+                this.Activate();
             }));
         }
 
