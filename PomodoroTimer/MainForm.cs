@@ -51,6 +51,33 @@ namespace PomodoroTimer
             StyleButton(startButton);
             StyleButton(stopButton);
 
+            // Add History and About links
+            LinkLabel historyLink = new LinkLabel
+            {
+                Text = "History",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9),
+                Location = new Point(this.ClientSize.Width - 100, this.ClientSize.Height - 25),
+                LinkColor = Color.FromArgb(0, 120, 215),
+                ActiveLinkColor = Color.FromArgb(0, 140, 230),
+                LinkBehavior = LinkBehavior.HoverUnderline
+            };
+            historyLink.Click += (s, e) => ShowHistory();
+            Controls.Add(historyLink);
+
+            LinkLabel aboutLink = new LinkLabel
+            {
+                Text = "About",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9),
+                Location = new Point(this.ClientSize.Width - 50, this.ClientSize.Height - 25),
+                LinkColor = Color.FromArgb(0, 120, 215),
+                ActiveLinkColor = Color.FromArgb(0, 140, 230),
+                LinkBehavior = LinkBehavior.HoverUnderline
+            };
+            aboutLink.Click += (s, e) => ShowAboutDialog();
+            Controls.Add(aboutLink);
+
             // Initialize mouse position check timer
             cursorCheckTimer = new System.Windows.Forms.Timer();
             cursorCheckTimer.Interval = 100; // Check every 100ms
@@ -96,6 +123,7 @@ namespace PomodoroTimer
             var contextMenu = new ContextMenuStrip();
             contextMenu.Items.Add("Show", null, (s, e) => { Show(); WindowState = FormWindowState.Normal; });
             contextMenu.Items.Add("View History", null, (s, e) => ShowHistory());
+            contextMenu.Items.Add("About", null, (s, e) => ShowAboutDialog());
             contextMenu.Items.Add("Exit", null, (s, e) => Application.Exit());
             notifyIcon.ContextMenuStrip = contextMenu;
 
@@ -107,6 +135,12 @@ namespace PomodoroTimer
             var historyData = pomodoroService.LoadPomodoroData();
             var historyForm = new HistoryForm(historyData);
             historyForm.ShowDialog();
+        }
+
+        private void ShowAboutDialog()
+        {
+            var aboutForm = new AboutForm();
+            aboutForm.ShowDialog(this);
         }
 
         private void InitializeTopMostCheckBox()
@@ -372,6 +406,25 @@ namespace PomodoroTimer
             {
                 cursorCheckTimer.Stop();
                 cursorCheckTimer.Dispose();
+            }
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            
+            // Update History and About links position when form is resized
+            var historyLink = Controls.OfType<LinkLabel>().FirstOrDefault(l => l.Text == "History");
+            var aboutLink = Controls.OfType<LinkLabel>().FirstOrDefault(l => l.Text == "About");
+            
+            if (historyLink != null)
+            {
+                historyLink.Location = new Point(this.ClientSize.Width - 100, this.ClientSize.Height - 25);
+            }
+            
+            if (aboutLink != null)
+            {
+                aboutLink.Location = new Point(this.ClientSize.Width - 50, this.ClientSize.Height - 25);
             }
         }
     }
