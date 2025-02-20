@@ -5,14 +5,17 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Threading.Tasks;
+using System.Runtime.Versioning;
 
 namespace PomodoroTimer
 {
+    [SupportedOSPlatform("windows")]
     public partial class Form1 : Form
     {
         private readonly PomodoroService pomodoroService;
-        private NotifyIcon notifyIcon;
-        private CheckBox chkTopMost;  // 添加置顶控件
+        private NotifyIcon notifyIcon = null!;
+        private CheckBox chkTopMost = null!;  // 添加置顶控件
+        private System.Windows.Forms.Timer cursorCheckTimer = null!; // 添加鼠标位置检查计时器
 
         public Form1()
         {
@@ -47,6 +50,11 @@ namespace PomodoroTimer
             // 美化按钮
             StyleButton(startButton);
             StyleButton(stopButton);
+
+            // 初始化鼠标位置检查计时器
+            cursorCheckTimer = new System.Windows.Forms.Timer();
+            cursorCheckTimer.Interval = 100; // 每100ms检查一次
+            cursorCheckTimer.Tick += CursorCheckTimer_Tick;
         }
 
         private void StyleButton(Button button)
@@ -118,7 +126,7 @@ namespace PomodoroTimer
             statsLabel.Location = new Point(statsLabel.Location.X, 250);
         }
 
-        private void ChkTopMost_CheckedChanged(object sender, EventArgs e)
+        private void ChkTopMost_CheckedChanged(object? sender, EventArgs e)
         {
             TopMost = chkTopMost.Checked;
         }
@@ -139,6 +147,8 @@ namespace PomodoroTimer
                 notifyIcon.ShowBalloonTip(3000, "Pomodoro Timer", "Work time started!", ToolTipIcon.Info);
                 this.TopMost = false;
                 UnlockCursor();
+                // 确保工作时间开始时停止计时器
+                cursorCheckTimer.Stop();
             };
 
             pomodoroService.BreakStarted += (s, e) =>
@@ -185,6 +195,10 @@ namespace PomodoroTimer
                 startButton.Enabled = true;
                 stopButton.Enabled = false;
                 UnlockCursor();
+                // 确保休息结束时也停止计时器
+                cursorCheckTimer.Stop();
+                // 根据 Always on Top 复选框状态设置窗口置顶
+                this.TopMost = chkTopMost.Checked;
             };
 
             Load += (s, e) =>
@@ -221,6 +235,8 @@ namespace PomodoroTimer
             startButton.Enabled = false;
             stopButton.Enabled = true;
             UnlockCursor(); // Call UnlockCursor after starting the work session
+            // 确保开始工作时停止计时器
+            cursorCheckTimer.Stop();
         }
 
         private void stopButton_Click(object sender, EventArgs e)
@@ -229,11 +245,49 @@ namespace PomodoroTimer
             startButton.Enabled = true;
             stopButton.Enabled = false;
             UnlockCursor();
+            // 确保停止时也停止计时器
+            cursorCheckTimer.Stop();
         }
 
         private void chkAutoStart_CheckedChanged(object sender, EventArgs e)
         {
             pomodoroService.SetAutoStart(chkAutoStart.Checked);
+        }
+
+        // 锁定鼠标时的定时检查
+        private void CursorCheckTimer_Tick(object? sender, EventArgs e)
+        {
+            if (!this.Visible || this.WindowState == FormWindowState.Minimized)
+            {
+                this.Show();
+                this.WindowState = FormWindowState.Normal;
+                this.Activate();
+            }
+
+            // 获取窗口客户区在屏幕中的实际位置
+            Point clientOrigin = this.PointToScreen(Point.Empty);
+            Rectangle screenRect = new Rectangle(
+                clientOrigin.X,
+                clientOrigin.Y,
+                this.ClientRectangle.Width,
+                this.ClientRectangle.Height
+            );
+
+            // 如果鼠标在窗口外，强制移回窗口中心
+            Point currentPos = System.Windows.Forms.Cursor.Position;
+            if (!screenRect.Contains(currentPos))
+            {
+                Point centerPoint = new Point(
+                    screenRect.X + screenRect.Width / 2,
+                    screenRect.Y + screenRect.Height / 2
+                );
+                System.Windows.Forms.Cursor.Position = centerPoint;
+            }
+
+            // 确保窗口始终置顶
+            this.TopMost = true;
+            this.BringToFront();
+            this.Activate();
         }
 
         // Restrict the mouse cursor to the bounds of the form's client area
@@ -257,11 +311,15 @@ namespace PomodoroTimer
                 screenRect.Y + screenRect.Height / 2
             );
             System.Windows.Forms.Cursor.Position = centerPoint;
+
+            // 启动鼠标位置检查计时器
+            cursorCheckTimer.Start();
         }
 
         // Release the mouse cursor restriction
         private void UnlockCursor()
         {
+            cursorCheckTimer.Stop();
             System.Windows.Forms.Cursor.Clip = System.Drawing.Rectangle.Empty;
         }
 
@@ -303,6 +361,17 @@ namespace PomodoroTimer
                     path.AddRectangle(rect);
                     e.Graphics.FillPath(brush, path);
                 }
+            }
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+            // 确保清理计时器资源
+            if (cursorCheckTimer != null)
+            {
+                cursorCheckTimer.Stop();
+                cursorCheckTimer.Dispose();
             }
         }
     }
