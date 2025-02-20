@@ -10,21 +10,21 @@ using System.Runtime.Versioning;
 namespace PomodoroTimer
 {
     [SupportedOSPlatform("windows")]
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         private readonly PomodoroService pomodoroService;
         private NotifyIcon notifyIcon = null!;
-        private CheckBox chkTopMost = null!;  // 添加置顶控件
-        private System.Windows.Forms.Timer cursorCheckTimer = null!; // 添加鼠标位置检查计时器
+        private CheckBox chkTopMost = null!;  // Add Always on Top control
+        private System.Windows.Forms.Timer cursorCheckTimer = null!; // Add mouse position check timer
 
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
             pomodoroService = new PomodoroService();          
 
             InitializeFormStyle();
             InitializeNotifyIcon();
-            InitializeTopMostCheckBox();  // 初始化置顶控件
+            InitializeTopMostCheckBox();  // Initialize Always on Top control
             SetupEventHandlers();
         }
 
@@ -35,25 +35,25 @@ namespace PomodoroTimer
             this.MinimumSize = new Size(300, 300);
             this.BackColor = Color.FromArgb(245, 245, 245);
             
-            // 美化计时器标签
+            // Beautify timer label
             timerLabel.Font = new Font("Segoe UI", 24, FontStyle.Bold);
             timerLabel.ForeColor = Color.FromArgb(64, 64, 64);
             
-            // 美化状态标签
+            // Beautify state label
             stateLabel.Font = new Font("Segoe UI", 12);
             stateLabel.ForeColor = Color.FromArgb(100, 100, 100);
             
-            // 设置初始状态和时间
+            // Set initial state and time
             stateLabel.Text = "Work Time";
             timerLabel.Text = $"{PomodoroService.DefaultWorkMinutes:D2}:00";
             
-            // 美化按钮
+            // Beautify buttons
             StyleButton(startButton);
             StyleButton(stopButton);
 
-            // 初始化鼠标位置检查计时器
+            // Initialize mouse position check timer
             cursorCheckTimer = new System.Windows.Forms.Timer();
-            cursorCheckTimer.Interval = 100; // 每100ms检查一次
+            cursorCheckTimer.Interval = 100; // Check every 100ms
             cursorCheckTimer.Tick += CursorCheckTimer_Tick;
         }
 
@@ -88,7 +88,7 @@ namespace PomodoroTimer
         {
             notifyIcon = new NotifyIcon
             {
-                Icon = this.Icon, // 使用相同的图标
+                Icon = this.Icon, // Use the same icon
                 Visible = true,
                 Text = "Pomodoro Timer"
             };
@@ -115,14 +115,14 @@ namespace PomodoroTimer
             {
                 Text = "Always on Top",
                 AutoSize = true,
-                Location = new Point(60, 215),  // 调整位置
+                Location = new Point(60, 215),  // Adjust position
                 Font = new Font("Segoe UI", 9),
                 ForeColor = Color.FromArgb(64, 64, 64)
             };
             chkTopMost.CheckedChanged += ChkTopMost_CheckedChanged;
             Controls.Add(chkTopMost);
             
-            // 调整 statsLabel 位置
+            // Adjust statsLabel position
             statsLabel.Location = new Point(statsLabel.Location.X, 250);
         }
 
@@ -147,7 +147,7 @@ namespace PomodoroTimer
                 notifyIcon.ShowBalloonTip(3000, "Pomodoro Timer", "Work time started!", ToolTipIcon.Info);
                 this.TopMost = false;
                 UnlockCursor();
-                // 确保工作时间开始时停止计时器
+                // Make sure to stop the timer when work starts
                 cursorCheckTimer.Stop();
             };
 
@@ -195,9 +195,9 @@ namespace PomodoroTimer
                 startButton.Enabled = true;
                 stopButton.Enabled = false;
                 UnlockCursor();
-                // 确保休息结束时也停止计时器
+                // Make sure to stop the timer when break ends
                 cursorCheckTimer.Stop();
-                // 根据 Always on Top 复选框状态设置窗口置顶
+                // Set window top-most according to Always on Top checkbox state
                 this.TopMost = chkTopMost.Checked;
             };
 
@@ -235,7 +235,7 @@ namespace PomodoroTimer
             startButton.Enabled = false;
             stopButton.Enabled = true;
             UnlockCursor(); // Call UnlockCursor after starting the work session
-            // 确保开始工作时停止计时器
+            // Make sure to stop the timer when work starts
             cursorCheckTimer.Stop();
         }
 
@@ -245,7 +245,7 @@ namespace PomodoroTimer
             startButton.Enabled = true;
             stopButton.Enabled = false;
             UnlockCursor();
-            // 确保停止时也停止计时器
+            // Make sure to stop the timer when stopped
             cursorCheckTimer.Stop();
         }
 
@@ -254,7 +254,7 @@ namespace PomodoroTimer
             pomodoroService.SetAutoStart(chkAutoStart.Checked);
         }
 
-        // 锁定鼠标时的定时检查
+        // Timed check when the mouse is locked
         private void CursorCheckTimer_Tick(object? sender, EventArgs e)
         {
             if (!this.Visible || this.WindowState == FormWindowState.Minimized)
@@ -264,7 +264,7 @@ namespace PomodoroTimer
                 this.Activate();
             }
 
-            // 获取窗口客户区在屏幕中的实际位置
+            // Get the actual position of the window client area on the screen
             Point clientOrigin = this.PointToScreen(Point.Empty);
             Rectangle screenRect = new Rectangle(
                 clientOrigin.X,
@@ -273,7 +273,7 @@ namespace PomodoroTimer
                 this.ClientRectangle.Height
             );
 
-            // 如果鼠标在窗口外，强制移回窗口中心
+            // If the mouse is outside the window, force it back to the center of the window
             Point currentPos = System.Windows.Forms.Cursor.Position;
             if (!screenRect.Contains(currentPos))
             {
@@ -284,7 +284,7 @@ namespace PomodoroTimer
                 System.Windows.Forms.Cursor.Position = centerPoint;
             }
 
-            // 确保窗口始终置顶
+            // Ensure the window is always on top
             this.TopMost = true;
             this.BringToFront();
             this.Activate();
@@ -293,7 +293,7 @@ namespace PomodoroTimer
         // Restrict the mouse cursor to the bounds of the form's client area
         private void LockCursor()
         {
-            // 获取窗口客户区在屏幕中的实际位置
+            // Get the actual position of the window client area on the screen
             Point clientOrigin = this.PointToScreen(Point.Empty);
             Rectangle screenRect = new Rectangle(
                 clientOrigin.X,
@@ -302,17 +302,17 @@ namespace PomodoroTimer
                 this.ClientRectangle.Height
             );
             
-            // 设置光标限制区域为客户区
+            // Set the cursor restriction area to the client area
             System.Windows.Forms.Cursor.Clip = screenRect;
             
-            // 将鼠标居中到窗口客户区中心
+            // Center the mouse to the center of the window client area
             Point centerPoint = new Point(
                 screenRect.X + screenRect.Width / 2,
                 screenRect.Y + screenRect.Height / 2
             );
             System.Windows.Forms.Cursor.Position = centerPoint;
 
-            // 启动鼠标位置检查计时器
+            // Start the mouse position check timer
             cursorCheckTimer.Start();
         }
 
@@ -331,7 +331,7 @@ namespace PomodoroTimer
             {
                 this.Invoke(new Action(() => {
                     this.Location = new Point(originalLocation.X + ((i % 2 == 0) ? shakeAmplitude : -shakeAmplitude), originalLocation.Y);
-                    // 在抖动过程中保持窗口置顶
+                    // Keep the window on top during the shake
                     this.TopMost = true;
                     this.BringToFront();
                 }));
@@ -339,7 +339,7 @@ namespace PomodoroTimer
             }
             this.Invoke(new Action(() => {
                 this.Location = originalLocation;
-                // 确保抖动结束后窗口仍然置顶
+                // Ensure the window is still on top after the shake
                 this.TopMost = true;
                 this.BringToFront();
                 this.Activate();
@@ -353,7 +353,7 @@ namespace PomodoroTimer
             using (LinearGradientBrush brush = new LinearGradientBrush(
                 rect,
                 Color.FromArgb(240, 248, 255),  // Alice Blue
-                Color.FromArgb(230, 240, 250),  // 稍深的蓝色
+                Color.FromArgb(230, 240, 250),  // Slightly darker blue
                 LinearGradientMode.Vertical))
             {
                 using (GraphicsPath path = new GraphicsPath())
@@ -367,7 +367,7 @@ namespace PomodoroTimer
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
-            // 确保清理计时器资源
+            // Ensure timer resources are cleaned up
             if (cursorCheckTimer != null)
             {
                 cursorCheckTimer.Stop();

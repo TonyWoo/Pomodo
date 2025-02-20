@@ -4,7 +4,7 @@ using Microsoft.Win32;
 using Newtonsoft.Json;
 using System.IO;
 using PomodoroTimer.Models;
-using System.Windows.Forms;  // 添加这个引用
+using System.Windows.Forms;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Drawing;
@@ -21,14 +21,13 @@ namespace PomodoroTimer.Services
         private const int PomodorosUntilLongBreak = 4;
         private readonly string dataPath;
 
-        // 公开工作时间常量供外部使用
         public static int DefaultWorkMinutes => WorkMinutes;
 
         public event EventHandler<TimeSpan> TimerTick;
         public event EventHandler BreakStarted;
         public event EventHandler WorkStarted;
-        public event EventHandler PomodoroCompleted;  // 新增事件
-        public event EventHandler BreakCompleted;  // 新增事件
+        public event EventHandler PomodoroCompleted;  
+        public event EventHandler BreakCompleted;
         
         private System.Windows.Forms.Timer timer;
         private DateTime startTime;
@@ -56,7 +55,7 @@ namespace PomodoroTimer.Services
                 Directory.CreateDirectory(directory);
             }
             
-            // 初始化今天已完成的番茄钟数
+            // Initialize the number of completed pomodoros today
             var existingData = LoadPomodoroData();
             var todayData = existingData.FirstOrDefault(d => d.Date.Date == DateTime.Today);
             completedPomodoros = todayData?.CompletedPomodoros ?? 0;
@@ -66,7 +65,7 @@ namespace PomodoroTimer.Services
             timer.Tick += Timer_Tick;
             currentState = PomodoroState.Work;
 
-            // 初始化时只更新显示，不触发计时器事件
+            // Update display only at initialization, do not trigger timer event
             TimerTick?.Invoke(this, TimeSpan.FromMinutes(WorkMinutes));
         }
 
@@ -104,29 +103,29 @@ namespace PomodoroTimer.Services
             {
                 completedPomodoros++;
                 SavePomodoroData();
-                // 先触发完成事件，让界面有机会更新统计数据
+                // Trigger completion event first to let the UI update statistics
                 PomodoroCompleted?.Invoke(this, EventArgs.Empty);
 
                 currentState = (completedPomodoros % PomodorosUntilLongBreak == 0) 
                     ? PomodoroState.LongBreak 
                     : PomodoroState.ShortBreak;
                 
-                // 更新显示新状态的时间
+                // Update time display for new state
                 TimerTick?.Invoke(this, GetTargetDuration());
                 
-                // 显示窗口并抖动
+                // Show window and shake
                 ShowAndShakeWindow();
                 
                 BreakStarted?.Invoke(this, EventArgs.Empty);
                 
-                // 设置新的开始时间并启动计时器
+                // Set new start time and start timer
                 startTime = DateTime.Now;
                 timer.Start();
             }
             else
             {
                 currentState = PomodoroState.Work;
-                // 停止计时器并重置状态
+                // Stop timer and reset state
                 timer.Stop();
                 TimerTick?.Invoke(this, TimeSpan.FromMinutes(WorkMinutes));
                 BreakCompleted?.Invoke(this, EventArgs.Empty);
@@ -139,7 +138,7 @@ namespace PomodoroTimer.Services
             var form = Application.OpenForms.Cast<Form>().FirstOrDefault();
             if (form != null)
             {
-                // 开始时就设置置顶
+                // Set top-most at the beginning
                 form.Invoke(new Action(() => {
                     form.TopMost = true;
                     form.BringToFront();
@@ -154,14 +153,14 @@ namespace PomodoroTimer.Services
                 {
                     form.Invoke(new Action(() => {
                         form.Location = new Point(originalLocation.X + ((i % 2 == 0) ? shakeAmplitude : -shakeAmplitude), originalLocation.Y);
-                        // 在抖动过程中持续保持置顶
+                        // Keep window top-most during shaking
                         form.TopMost = true;
                         form.BringToFront();
                     }));
                     await Task.Delay(50);
                 }
 
-                // 抖动结束后再次确保置顶
+                // Ensure top-most one more time after shaking
                 form.Invoke(new Action(() => {
                     form.Location = originalLocation;
                     form.TopMost = true;
@@ -182,7 +181,7 @@ namespace PomodoroTimer.Services
         public void Stop()
         {
             timer.Stop();
-            // 重置计时器显示
+            // Reset timer display
             currentState = PomodoroState.Work;
             TimerTick?.Invoke(this, TimeSpan.FromMinutes(WorkMinutes));
         }
