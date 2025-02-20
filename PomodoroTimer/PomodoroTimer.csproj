@@ -5,15 +5,14 @@
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>    <!-- Changed from enable to disable to avoid duplicate global usings -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>..\favicon.ico</ApplicationIcon>
+    <ApplicationIcon>favicon.ico</ApplicationIcon>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>  <!-- Disable auto-generation to avoid duplicates -->
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\favicon.ico">
-      <LogicalName>PomodoroTimer.favicon.ico</LogicalName>
-    </EmbeddedResource>
+    <Content Include="favicon.ico" />
   </ItemGroup>
 
   <ItemGroup>

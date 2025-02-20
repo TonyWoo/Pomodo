@@ -16,23 +16,8 @@ namespace PomodoroTimer
         public Form1()
         {
             InitializeComponent();
-            pomodoroService = new PomodoroService();
-            
-            try
-            {
-                var asm = System.Reflection.Assembly.GetExecutingAssembly();
-                using (var stream = asm.GetManifestResourceStream("PomodoroTimer.favicon.ico"))
-                {
-                    if (stream == null)
-                        throw new Exception("Embedded resource 'PomodoroTimer.favicon.ico' not found.");
-                    this.Icon = new Icon(stream);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to load embedded icon: {ex.Message}", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            
+            pomodoroService = new PomodoroService();          
+ 
             InitializeFormStyle();
             InitializeNotifyIcon();
             InitializeTopMostCheckBox();  // 初始化置顶控件
