@@ -15,8 +15,8 @@ namespace PomodoroTimer.Services
     {
         private const string StartupKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
         private const string AppName = "PomodoroTimer";
-        private const int WorkMinutes = 1;
-        private const int ShortBreakMinutes = 1;
+        private const int WorkMinutes = 25;
+        private const int ShortBreakMinutes = 5;
         private const int LongBreakMinutes = 30;
         private const int PomodorosUntilLongBreak = 4;
         private readonly string dataPath;
