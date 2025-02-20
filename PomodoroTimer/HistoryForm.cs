@@ -44,7 +44,17 @@ namespace PomodoroTimer
             {
                 var item = new ListViewItem(data.Date.ToShortDateString());
                 item.SubItems.Add(data.CompletedPomodoros.ToString());
-                item.SubItems.Add($"{data.TotalFocusTime.TotalHours:F1} hrs");
+                
+                // Format focus time as "X hours Y minutes"
+                int hours = (int)data.TotalFocusTime.TotalHours;
+                int minutes = data.TotalFocusTime.Minutes;
+                string focusTime = hours > 0 
+                    ? minutes > 0 
+                        ? $"{hours}H{minutes}M"
+                        : $"{hours}M"
+                    : $"{minutes}M";
+                
+                item.SubItems.Add(focusTime);
                 listView.Items.Add(item);
             }
         }
