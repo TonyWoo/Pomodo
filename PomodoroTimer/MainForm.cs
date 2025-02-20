@@ -4,6 +4,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace PomodoroTimer
 {
@@ -129,12 +130,25 @@ namespace PomodoroTimer
             {
                 stateLabel.Text = "Work Time";
                 notifyIcon.ShowBalloonTip(3000, "Pomodoro Timer", "Work time started!", ToolTipIcon.Info);
+                // Ensure mouse restriction is removed during work time
+                UnlockCursor();
             };
 
             pomodoroService.BreakStarted += (s, e) =>
             {
                 stateLabel.Text = "Break Time";
                 notifyIcon.ShowBalloonTip(3000, "Pomodoro Timer", "Break time! Screen will be locked.", ToolTipIcon.Info);
+                this.Invoke(async () =>
+                {
+                    this.TopMost = true; // Set window as topmost
+                    this.WindowState = FormWindowState.Normal; // Ensure the window is in normal state
+                    this.Show();
+                    this.BringToFront();
+                    this.Activate();
+                    await ShakeWindow();
+                    this.TopMost = false; // Reset topmost property
+                });
+                LockCursor();
             };
 
             Load += (s, e) =>
@@ -157,6 +171,7 @@ namespace PomodoroTimer
             pomodoroService.Start();
             startButton.Enabled = false;
             stopButton.Enabled = true;
+            UnlockCursor(); // Call UnlockCursor after starting the work session
         }
 
         private void stopButton_Click(object sender, EventArgs e)
@@ -164,11 +179,40 @@ namespace PomodoroTimer
             pomodoroService.Stop();
             startButton.Enabled = true;
             stopButton.Enabled = false;
+            UnlockCursor();
         }
 
         private void chkAutoStart_CheckedChanged(object sender, EventArgs e)
         {
             pomodoroService.SetAutoStart(chkAutoStart.Checked);
+        }
+
+        // Restrict the mouse cursor to the bounds of the form's client area
+        private void LockCursor()
+        {
+            System.Windows.Forms.Cursor.Clip = this.RectangleToScreen(this.ClientRectangle);
+        }
+
+        // Release the mouse cursor restriction
+        private void UnlockCursor()
+        {
+            System.Windows.Forms.Cursor.Clip = System.Drawing.Rectangle.Empty;
+        }
+
+        private async Task ShakeWindow()
+        {
+            var originalLocation = this.Location;
+            int shakeAmplitude = 10;
+            for (int i = 0; i < 10; i++)
+            {
+                this.Invoke(new Action(() => {
+                    this.Location = new Point(originalLocation.X + ((i % 2 == 0) ? shakeAmplitude : -shakeAmplitude), originalLocation.Y);
+                }));
+                await Task.Delay(50);
+            }
+            this.Invoke(new Action(() => {
+                this.Location = originalLocation;
+            }));
         }
 
         protected override void OnPaint(PaintEventArgs e)
