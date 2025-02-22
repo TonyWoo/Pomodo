@@ -21,6 +21,7 @@
             stopButton = new Button();
             stateLabel = new Label();
             chkAutoStart = new CheckBox();
+            topMostCheckBox = new CheckBox();
             statsLabel = new Label();
             SuspendLayout();
             // 
@@ -76,10 +77,21 @@
             chkAutoStart.Text = "Start with Windows";
             chkAutoStart.CheckedChanged += chkAutoStart_CheckedChanged;
             // 
+            // topMostCheckBox
+            // 
+            topMostCheckBox.AutoSize = true;
+            topMostCheckBox.Font = new System.Drawing.Font("Segoe UI", 9F);
+            topMostCheckBox.Location = new System.Drawing.Point(60, 200);
+            topMostCheckBox.Name = "topMostCheckBox";
+            topMostCheckBox.Size = new System.Drawing.Size(128, 19);
+            topMostCheckBox.TabIndex = 6;
+            topMostCheckBox.Text = "Always on Top";
+            topMostCheckBox.CheckedChanged += topMostCheckBox_CheckedChanged;
+            // 
             // statsLabel
             // 
             statsLabel.Font = new System.Drawing.Font("Segoe UI", 9F);
-            statsLabel.Location = new System.Drawing.Point(0, 220);
+            statsLabel.Location = new System.Drawing.Point(0, 240);
             statsLabel.Name = "statsLabel";
             statsLabel.Size = new System.Drawing.Size(300, 20);
             statsLabel.TabIndex = 0;
@@ -91,6 +103,7 @@
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(300, 300);
+            Controls.Add(topMostCheckBox);
             Controls.Add(statsLabel);
             Controls.Add(chkAutoStart);
             Controls.Add(stopButton);
@@ -113,5 +126,6 @@
         private System.Windows.Forms.Label stateLabel;
         private System.Windows.Forms.CheckBox chkAutoStart;
         private System.Windows.Forms.Label statsLabel;
+        private System.Windows.Forms.CheckBox topMostCheckBox;
     }
 }
