@@ -46,7 +46,7 @@ namespace PomodoroTimer.Tests
 
             // Act
             service.Start();
-            Thread.Sleep(2000); // 等待足够的时间让定时器触发
+            Thread.Sleep(2000); // wait for timer tick
             service.Stop();
 
             // Assert
@@ -99,12 +99,12 @@ namespace PomodoroTimer.Tests
             };
 
             // Act
-            // Simulate completing 4 pomodoros
+            // Simulate completing 3 pomodoros
             var completedField = typeof(PomodoroService).GetField("completedPomodoros", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            completedField.SetValue(service, 4);
+            completedField.SetValue(service, 3);
 
-            // Trigger completion of current pomodoro
+            // Trigger completion of current pomodoro (this should be the 4th completed pomodoro and thus trigger a long break)
             var method = typeof(PomodoroService).GetMethod("HandlePomodoroComplete", 
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             method.Invoke(service, null);
