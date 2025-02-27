@@ -15,8 +15,8 @@ namespace PomodoroTimer.Services
     {
         private const string StartupKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
         private const string AppName = "PomodoroTimer";
-        private const int WorkMinutes = 25;
-        private const int ShortBreakMinutes = 5;
+        private const int WorkMinutes = 1;
+        private const int ShortBreakMinutes = 1;
         private const int LongBreakMinutes = 30;
         private const int PomodorosUntilLongBreak = 4;
         private readonly string dataPath;
@@ -105,7 +105,6 @@ namespace PomodoroTimer.Services
                 SavePomodoroData();
                 // Trigger completion event first to let the UI update statistics
                 PomodoroCompleted?.Invoke(this, EventArgs.Empty);
-
                 currentState = (completedPomodoros % PomodorosUntilLongBreak == 0) 
                     ? PomodoroState.LongBreak 
                     : PomodoroState.ShortBreak;
@@ -114,7 +113,7 @@ namespace PomodoroTimer.Services
                 TimerTick?.Invoke(this, GetTargetDuration());
                 
                 // Show window and shake
-                ShowAndShakeWindow();
+                //ShowAndShakeWindow();
                 
                 BreakStarted?.Invoke(this, EventArgs.Empty);
                 
@@ -131,45 +130,6 @@ namespace PomodoroTimer.Services
                 BreakCompleted?.Invoke(this, EventArgs.Empty);
             }
         }
-
-        // New method to bring the main window to front and shake it
-        private async void ShowAndShakeWindow()
-        {
-            var form = Application.OpenForms.Cast<Form>().FirstOrDefault();
-            if (form != null)
-            {
-                // Set top-most at the beginning
-                form.Invoke(new Action(() => {
-                    form.TopMost = true;
-                    form.BringToFront();
-                    form.Activate();
-                    form.WindowState = FormWindowState.Normal;
-                    form.Show();
-                }));
-
-                var originalLocation = form.Location;
-                int shakeAmplitude = 10;
-                for (int i = 0; i < 10; i++)
-                {
-                    form.Invoke(new Action(() => {
-                        form.Location = new Point(originalLocation.X + ((i % 2 == 0) ? shakeAmplitude : -shakeAmplitude), originalLocation.Y);
-                        // Keep window top-most during shaking
-                        form.TopMost = true;
-                        form.BringToFront();
-                    }));
-                    await Task.Delay(50);
-                }
-
-                // Ensure top-most one more time after shaking
-                form.Invoke(new Action(() => {
-                    form.Location = originalLocation;
-                    form.TopMost = true;
-                    form.BringToFront();
-                    form.Activate();
-                }));
-            }
-        }
-
         public void Start()
         {
             startTime = DateTime.Now;
