@@ -14,8 +14,7 @@ namespace PomodoroTimer
     {
         private readonly PomodoroService pomodoroService;
         private NotifyIcon notifyIcon = null!;
-        private CheckBox chkTopMost = null!;  // Add Always on Top control
-        private System.Windows.Forms.Timer cursorCheckTimer = null!; // Add mouse position check timer
+        private System.Windows.Forms.Timer cursorCheckTimer = null!;
 
         public MainForm()
         {
@@ -24,7 +23,6 @@ namespace PomodoroTimer
 
             InitializeFormStyle();
             InitializeNotifyIcon();
-            InitializeTopMostCheckBox();  // Initialize Always on Top control
             SetupEventHandlers();
         }
 
@@ -143,26 +141,9 @@ namespace PomodoroTimer
             aboutForm.ShowDialog(this);
         }
 
-        private void InitializeTopMostCheckBox()
+        private void topMostCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            chkTopMost = new CheckBox
-            {
-                Text = "Always on Top",
-                AutoSize = true,
-                Location = new Point(60, 215),  // Adjust position
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.FromArgb(64, 64, 64)
-            };
-            chkTopMost.CheckedChanged += ChkTopMost_CheckedChanged;
-            Controls.Add(chkTopMost);
-            
-            // Adjust statsLabel position
-            statsLabel.Location = new Point(statsLabel.Location.X, 250);
-        }
-
-        private void ChkTopMost_CheckedChanged(object? sender, EventArgs e)
-        {
-            TopMost = chkTopMost.Checked;
+            TopMost = topMostCheckBox.Checked;
         }
 
         private void SetupEventHandlers()
@@ -229,10 +210,8 @@ namespace PomodoroTimer
                 startButton.Enabled = true;
                 stopButton.Enabled = false;
                 UnlockCursor();
-                // Make sure to stop the timer when break ends
                 cursorCheckTimer.Stop();
-                // Set window top-most according to Always on Top checkbox state
-                this.TopMost = chkTopMost.Checked;
+                this.TopMost = topMostCheckBox.Checked;
             };
 
             Load += (s, e) =>
