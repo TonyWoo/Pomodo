@@ -363,6 +363,10 @@ namespace PomodoroTimer
         {
             base.OnPaint(e);
             Rectangle rect = this.ClientRectangle;
+            if(rect.Width == 0 || rect.Height == 0)
+            {
+                return;
+            }
             using (LinearGradientBrush brush = new LinearGradientBrush(
                 rect,
                 Color.FromArgb(240, 248, 255),  // Alice Blue
