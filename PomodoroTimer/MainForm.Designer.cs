@@ -1,4 +1,7 @@
-﻿namespace PomodoroTimer
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace PomodoroTimer
 {
     partial class MainForm
     {
@@ -23,6 +26,8 @@
             chkAutoStart = new CheckBox();
             topMostCheckBox = new CheckBox();
             statsLabel = new Label();
+            historyLink = new LinkLabel();
+            aboutLink = new LinkLabel();
             SuspendLayout();
             // 
             // timerLabel
@@ -98,11 +103,35 @@
             statsLabel.Text = "Today: 0 pomodoros";
             statsLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // historyLink
+            // 
+            historyLink.Text = "History";
+            historyLink.AutoSize = true;
+            historyLink.Font = new Font("Segoe UI", 9F);
+            historyLink.Location = new Point(195, 270);  // 调整到右下角
+            historyLink.LinkColor = Color.FromArgb(0, 120, 215);
+            historyLink.ActiveLinkColor = Color.FromArgb(0, 140, 230);
+            historyLink.LinkBehavior = LinkBehavior.HoverUnderline;
+            historyLink.Click += (s, e) => ShowHistory();
+            // 
+            // aboutLink
+            // 
+            aboutLink.Text = "About";
+            aboutLink.AutoSize = true;
+            aboutLink.Font = new Font("Segoe UI", 9F);
+            aboutLink.Location = new Point(245, 270);  // 调整到右下角
+            aboutLink.LinkColor = Color.FromArgb(0, 120, 215);
+            aboutLink.ActiveLinkColor = Color.FromArgb(0, 140, 230);
+            aboutLink.LinkBehavior = LinkBehavior.HoverUnderline;
+            aboutLink.Click += (s, e) => ShowAboutDialog();
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new System.Drawing.Size(300, 300);
+            Controls.Add(aboutLink);
+            Controls.Add(historyLink);
             Controls.Add(topMostCheckBox);
             Controls.Add(statsLabel);
             Controls.Add(chkAutoStart);
@@ -127,5 +156,7 @@
         private System.Windows.Forms.CheckBox chkAutoStart;
         private System.Windows.Forms.Label statsLabel;
         private System.Windows.Forms.CheckBox topMostCheckBox;
+        private System.Windows.Forms.LinkLabel historyLink;
+        private System.Windows.Forms.LinkLabel aboutLink;
     }
 }
